@@ -11,7 +11,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/AdguardTeam/AdGuardHome/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=14ffd999e0b688f75ee16caf24dcc00aaa465009241eb1613b7fe7e8b302fd10
+PKG_HASH:=d803348688ff0d44f20bd201801720f2f0bd48528c20abc48da9a01a59de65a9
 
 PKG_LICENSE:=GPL-3.0-only
 PKG_LICENSE_FILES:=LICENSE.txt
@@ -33,7 +33,7 @@ GO_PKG_LDFLAGS_X:= \
 	$(GO_PKG)/internal/version.gomips=$(GO_MIPS)
 
 include $(INCLUDE_DIR)/package.mk
-include ../../lang/golang/golang-package.mk
+include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
 
 define Package/adguardhome
   SECTION:=net
@@ -62,8 +62,12 @@ endef
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
+	if [ -d "$(BUILD_DIR)/AdGuardHome-$(PKG_VERSION)" ]; then \
+		mv "$(BUILD_DIR)/AdGuardHome-$(PKG_VERSION)/"* "$(BUILD_DIR)/adguardhome-$(PKG_VERSION)/"; \
+	fi
 
 	gzip -dc $(DL_DIR)/$(FRONTEND_FILE) | $(HOST_TAR) -C $(PKG_BUILD_DIR)/ $(TAR_OPTIONS)
+	( cd "$(BUILD_DIR)/adguardhome-$(PKG_VERSION)"; go mod tidy )
 endef
 
 define Package/adguardhome/install
