@@ -34,9 +34,12 @@ STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
+# Enhanced capbilities
+capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,CAP_PERFMON,cap_bpf,cap_sys_admin"
+
 
 check_dnsmasq() {
-   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" != "2" ]; then
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -ne 0 ] && [ "$enable_redirect_dns" != "2" ]; then
       DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
       if [ -z "$DNSPORT" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
@@ -181,7 +184,7 @@ if [ "$enable" -eq 1 ]; then
          chmod o+w /tmp/openclash.log 2>/dev/null
          chmod o+w /etc/openclash/cache.db 2>/dev/null
          chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-         capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace"
+         
          capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
 	      sleep 3
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
