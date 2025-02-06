@@ -1288,8 +1288,7 @@ local function curl(url, file, ua, mode)
 	return return_code
 end
 
-local function truncate_nodes(airport)
-	local add_from = (airport ~= "all-node") and airport or nil
+local function truncate_nodes(add_from)
 	for _, config in pairs(CONFIG) do
 		if config.currentNodes and #config.currentNodes > 0 then
 			local newNodes = {}
@@ -1328,13 +1327,11 @@ local function truncate_nodes(airport)
 			end
 		end
 	end)
-	if airport then
-		uci:foreach(appname, "subscribe_list", function(o)
-			if airport == "all-node" or airport == o.remark then
-				uci:delete(appname, o['.name'], "md5")
-			end
-		end)
-	end
+	uci:foreach(appname, "subscribe_list", function(o)
+		if (not add_from) or add_from == o.remark then
+			uci:delete(appname, o['.name'], "md5")
+		end
+	end)
 	api.uci_save(uci, appname, true)
 end
 
