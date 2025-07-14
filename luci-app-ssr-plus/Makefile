@@ -1,14 +1,19 @@
 include $(TOPDIR)/rules.mk
 
-PKG_NAME:=luci-app-ssr-plus
-PKG_VERSION:=188
-PKG_RELEASE:=3
+LUCI_TITLE:=luci-app-ssr-plus
+LUCI_PKGARCH:=all
+PKG_VERSION:=190
+PKG_RELEASE:=1
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_NONE_V2RAY \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_V2ray \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Xray \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_DNS2SOCKS \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_DNS2SOCKS_RUST \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_DNS2TCP \
+	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_DNSPROXY \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria \
 	CONFIG_PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client \
@@ -32,15 +37,17 @@ PKG_CONFIG_DEPENDS:= \
 LUCI_TITLE:=SS/SSR/V2Ray/Trojan/NaiveProxy/Tuic/ShadowTLS/Hysteria/Socks5/Tun LuCI interface
 LUCI_PKGARCH:=all
 LUCI_DEPENDS:= \
-	@(PACKAGE_libustream-mbedtls||PACKAGE_libustream-openssl||PACKAGE_libustream-wolfssl) \
-	+coreutils +coreutils-base64 +dns2socks +dns2tcp +dnsmasq-full +@PACKAGE_dnsmasq_full_ipset +ipset +kmod-ipt-nat \
+	+coreutils +coreutils-base64 +dns2tcp +dnsmasq-full +@PACKAGE_dnsmasq_full_ipset +ipset +kmod-ipt-nat +jq \
 	+ip-full +iptables +iptables-mod-tproxy +lua +lua-neturl +libuci-lua +microsocks \
-	+tcping +resolveip +shadowsocksr-libev-ssr-check +uclient-fetch \
+	+tcping +resolveip +shadowsocksr-libev-ssr-check +curl \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:curl \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_V2ray:v2ray-core \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:curl \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Xray:xray-core \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG:chinadns-ng \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_DNS2SOCKS:dns2socks \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_DNS2SOCKS_RUST:dns2socks-rust \
+	+PACKAGE_$(PKG_NAME)_INCLUDE_DNSPROXY:dnsproxy \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS:mosdns \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Hysteria:hysteria \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Tuic_Client:tuic-client \
@@ -61,8 +68,10 @@ LUCI_DEPENDS:= \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_ShadowsocksR_Libev_Server:shadowsocksr-libev-ssr-server \
 	+PACKAGE_$(PKG_NAME)_INCLUDE_Trojan:trojan
 
+
 define Package/$(PKG_NAME)/config
 select PACKAGE_luci-lib-ipkg if PACKAGE_$(PKG_NAME)
+select PACKAGE_luci-lua-runtime if PACKAGE_$(PKG_NAME)
 
 choice
 	prompt "Shadowsocks Client Selection"
@@ -116,7 +125,19 @@ endchoice
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_ChinaDNS_NG
 	bool "Include ChinaDNS-NG"
+	default n
+
+config PACKAGE_$(PKG_NAME)_INCLUDE_DNS2SOCKS
+	bool "Include DNS2socks"
 	default y
+
+config PACKAGE_$(PKG_NAME)_INCLUDE_DNS2SOCKS_RUST
+	bool "Include DNS2socks-Rust"
+	default n
+
+config PACKAGE_$(PKG_NAME)_INCLUDE_DNSPROXY
+	bool "Include DNSproxy"
+	default n
 
 config PACKAGE_$(PKG_NAME)_INCLUDE_MosDNS
 	bool "Include MosDNS"
@@ -180,7 +201,9 @@ config PACKAGE_$(PKG_NAME)_INCLUDE_Trojan
 	bool "Include Trojan"
 	select PACKAGE_$(PKG_NAME)_INCLUDE_IPT2Socks
 	default n
+
 endef
+
 
 define Package/$(PKG_NAME)/conffiles
 /etc/config/shadowsocksr
