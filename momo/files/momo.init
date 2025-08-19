@@ -60,9 +60,10 @@ start_service() {
 	config_get dns_inbound_tag "core" "dns_inbound_tag"
 	config_get fake_ip_dns_server_tag "core" "fake_ip_dns_server_tag"
 	## proxy config
-	local ipv4_dns_hijack ipv6_dns_hijack tcp_mode udp_mode
-	config_get ipv4_dns_hijack "proxy" "ipv4_dns_hijack"
-	config_get ipv6_dns_hijack "proxy" "ipv6_dns_hijack"
+	local proxy_enabled ipv4_dns_hijack ipv6_dns_hijack tcp_mode udp_mode
+	config_get_bool proxy_enabled "proxy" "enabled" 0
+	config_get_bool ipv4_dns_hijack "proxy" "ipv4_dns_hijack" 0
+	config_get_bool ipv6_dns_hijack "proxy" "ipv6_dns_hijack" 0
 	config_get tcp_mode "proxy" "tcp_mode"
 	config_get udp_mode "proxy" "udp_mode"
 	# get profile
@@ -100,7 +101,7 @@ start_service() {
 		return
 	fi
 	# check profile
-	if [ "$core_only" = 0 ]; then
+	if [ "$core_only" = 0 ] && [ "$proxy_enabled" = 1 ]; then
 		log "Profile" "Checking..."
 		if [ "$ipv4_dns_hijack" = 1 ] || [ "$ipv6_dns_hijack" = 1 ]; then
 			local dns_port; dns_port=$(jsonfilter -q -i "$RUN_PROFILE_PATH" -e "@['inbounds'][*]" | jsonfilter -q -a -e "@[@['tag']='$dns_inbound_tag']" | jsonfilter -q -a -e "@[@['type']='direct']" | jsonfilter -q -e "@['listen_port']")
