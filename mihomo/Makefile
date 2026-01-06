@@ -39,7 +39,7 @@ define Package/mihomo
   DEPENDS:=$(GO_ARCH_DEPENDS)
   PROVIDES:=@mihomo-any
   ALTERNATIVES:=\
-  	200:/usr/bin/mihomo:/usr/libexec/fchomo/core
+    100:/usr/bin/mihomo:/usr/libexec/fchomo/core
   USERID:=mihomo=7890:mihomo=7890
 endef
 
